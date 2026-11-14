@@ -3,7 +3,7 @@
   const THEMES = window.GRAD_THEMES;
   const PRESETS = window.GRAD_PRESETS;
   const { escapeHtml } = window.GRAD_UTILS;
-  const STORAGE_KEY = "grad_card_draft_v5";
+  const STORAGE_KEY = "grad_card_draft_v7";
 
   function encodeCfg(obj) {
     const bytes = new TextEncoder().encode(JSON.stringify(obj));
@@ -285,6 +285,9 @@
     overlay.classList.remove("fade-out", "hidden");
     document.getElementById("openEnvelopeBtn").onclick = () => {
       overlay.classList.add("fade-out");
+      if (window.GradMusic && state.musicEnabled !== false && state.musicAutoplay !== false) {
+        window.GradMusic.play();
+      }
       setTimeout(() => {
         overlay.classList.add("hidden");
         window.GradEffects.fireConfetti(140);
@@ -323,10 +326,20 @@ window.GRAD_PRESETS = ${JSON.stringify(PRESETS, null, 2)};
     const mount = createCardIn("guestMount", false);
     updateCardIn(mount, true);
 
-    if (fxState.env) openEnvelopeScreen();
-    else setTimeout(() => window.GradEffects.fireConfetti(100), 300);
+    if (window.GradMusic) window.GradMusic.init(state);
+
+    if (fxState.env) {
+      openEnvelopeScreen();
+    } else {
+      setTimeout(() => window.GradEffects.fireConfetti(100), 300);
+      if (window.GradMusic && state.musicEnabled !== false && state.musicAutoplay !== false) {
+        window.GradMusic.play();
+      }
+    }
   } else {
     document.getElementById("builderShell").classList.remove("hidden");
+
+    if (window.GradMusic) window.GradMusic.init(state);
 
     const inputGuest = document.getElementById("inputGuest");
     const pickAccent = document.getElementById("pickAccent");
@@ -340,6 +353,17 @@ window.GRAD_PRESETS = ${JSON.stringify(PRESETS, null, 2)};
     const chibiEnabled = document.getElementById("chibiEnabled");
     const chibiMode = document.getElementById("chibiMode");
     const photoLayout = document.getElementById("photoLayout");
+    const musicEnabled = document.getElementById("musicEnabled");
+    const musicAutoplay = document.getElementById("musicAutoplay");
+    const customMusicTitle = document.getElementById("customMusicTitle");
+    const customMusicUrl = document.getElementById("customMusicUrl");
+    const musicStartTime = document.getElementById("musicStartTime");
+    const musicEndTime = document.getElementById("musicEndTime");
+    const testPlayMusicBtn = document.getElementById("testPlayMusicBtn");
+    const setStartTimeNowBtn = document.getElementById("setStartTimeNowBtn");
+    const rewindMusicBtn = document.getElementById("rewindMusicBtn");
+    const playerCurrentTimeBadge = document.getElementById("playerCurrentTimeBadge");
+    const presetTrackList = document.getElementById("presetTrackList");
     const fieldInputs = document.querySelectorAll("[data-field]");
 
     function switchTab(tabId) {
@@ -457,7 +481,61 @@ window.GRAD_PRESETS = ${JSON.stringify(PRESETS, null, 2)};
       chibiEnabled.checked = !!state.chibiEnabled;
       chibiMode.value = state.chibiMode || "guide-info";
       photoLayout.value = state.photoLayout || "polaroid";
+      if (musicEnabled) musicEnabled.checked = state.musicEnabled !== false;
+      if (musicAutoplay) musicAutoplay.checked = state.musicAutoplay !== false;
+      if (customMusicTitle) customMusicTitle.value = state.musicTitle || "";
+      if (customMusicUrl) customMusicUrl.value = state.musicUrl || "";
+      if (musicStartTime) musicStartTime.value = state.musicStartTime || "00:00";
+      if (musicEndTime) musicEndTime.value = state.musicEndTime || "";
       renderPhotoEditorList();
+      renderMusicPresetTracks();
+      updateTestPlayBtnText();
+    }
+
+    function renderMusicPresetTracks() {
+      if (!presetTrackList) return;
+      const tracks = window.GRAD_MUSIC_TRACKS || [];
+      presetTrackList.innerHTML = tracks.map(t => {
+        const isActive = (state.musicUrl || "") === t.url;
+        return `
+          <div class="track-card ${isActive ? "active" : ""}" data-track-url="${escapeHtml(t.url)}" data-track-name="${escapeHtml(t.name)}" data-track-start="${escapeHtml(t.suggestedStart || "00:00")}">
+            <div class="track-info">
+              <div class="track-name">${escapeHtml(t.name)}</div>
+              <div class="track-desc">${escapeHtml(t.desc || "")}</div>
+            </div>
+            <button type="button" class="track-play-btn" title="Chọn & nghe thử">
+              ${isActive && window.GradMusic && window.GradMusic.isPlaying() ? "⏸️" : "▶️"}
+            </button>
+          </div>
+        `;
+      }).join("");
+
+      presetTrackList.querySelectorAll(".track-card").forEach(card => {
+        card.addEventListener("click", () => {
+          const u = card.dataset.trackUrl;
+          const n = card.dataset.trackName;
+          const s = card.dataset.trackStart || "00:00";
+          state.musicUrl = u;
+          state.musicTitle = n;
+          state.musicStartTime = s;
+          if (customMusicUrl) customMusicUrl.value = u;
+          if (customMusicTitle) customMusicTitle.value = n;
+          if (musicStartTime) musicStartTime.value = s;
+          if (window.GradMusic) {
+            window.GradMusic.updateConfig(state);
+            window.GradMusic.play(true);
+          }
+          renderMusicPresetTracks();
+          updateTestPlayBtnText();
+          refreshAll();
+        });
+      });
+    }
+
+    function updateTestPlayBtnText() {
+      if (!testPlayMusicBtn) return;
+      const playing = window.GradMusic && window.GradMusic.isPlaying();
+      testPlayMusicBtn.textContent = playing ? "⏸️ Tạm dừng nghe thử" : "▶️ Nghe thử nhạc nền";
     }
 
     function buildShareUrl() {
@@ -594,6 +672,97 @@ window.GRAD_PRESETS = ${JSON.stringify(PRESETS, null, 2)};
     chibiMode.addEventListener("change", () => { state.chibiMode = chibiMode.value; refreshAll(); });
     photoLayout.addEventListener("change", () => { state.photoLayout = photoLayout.value; refreshAll(); });
 
+    // Sự kiện Âm nhạc
+    if (musicEnabled) {
+      musicEnabled.addEventListener("change", () => {
+        state.musicEnabled = musicEnabled.checked;
+        if (window.GradMusic) window.GradMusic.updateConfig(state);
+        refreshAll();
+      });
+    }
+    if (musicAutoplay) {
+      musicAutoplay.addEventListener("change", () => {
+        state.musicAutoplay = musicAutoplay.checked;
+        if (window.GradMusic) window.GradMusic.updateConfig(state);
+        refreshAll();
+      });
+    }
+    if (customMusicTitle) {
+      customMusicTitle.addEventListener("input", () => {
+        state.musicTitle = customMusicTitle.value;
+        if (window.GradMusic) window.GradMusic.updateConfig(state);
+        refreshAll();
+      });
+    }
+    if (customMusicUrl) {
+      customMusicUrl.addEventListener("input", () => {
+        state.musicUrl = customMusicUrl.value;
+        if (window.GradMusic) window.GradMusic.updateConfig(state);
+        renderMusicPresetTracks();
+        refreshAll();
+      });
+    }
+    if (musicStartTime) {
+      musicStartTime.addEventListener("input", () => {
+        state.musicStartTime = musicStartTime.value;
+        if (window.GradMusic) window.GradMusic.updateConfig(state);
+        refreshAll();
+      });
+    }
+    if (musicEndTime) {
+      musicEndTime.addEventListener("input", () => {
+        state.musicEndTime = musicEndTime.value;
+        if (window.GradMusic) window.GradMusic.updateConfig(state);
+        refreshAll();
+      });
+    }
+    if (setStartTimeNowBtn) {
+      setStartTimeNowBtn.addEventListener("click", () => {
+        if (!window.GradMusic) return;
+        const cur = window.GradMusic.getCurrentTime();
+        const formatted = window.GradMusic.formatTime(cur);
+        state.musicStartTime = formatted;
+        if (musicStartTime) musicStartTime.value = formatted;
+        window.GradMusic.updateConfig(state);
+        showToast(`Đã lưu điểm bắt đầu: ${formatted}`);
+        refreshAll();
+      });
+    }
+    if (rewindMusicBtn) {
+      rewindMusicBtn.addEventListener("click", () => {
+        if (!window.GradMusic) return;
+        const sec = window.GradMusic.parseTime(state.musicStartTime);
+        window.GradMusic.seekTo(sec);
+        window.GradMusic.play(true);
+        updateTestPlayBtnText();
+        renderMusicPresetTracks();
+      });
+    }
+    if (testPlayMusicBtn) {
+      testPlayMusicBtn.addEventListener("click", () => {
+        if (!window.GradMusic) return;
+        if (window.GradMusic.isPlaying()) {
+          window.GradMusic.pause();
+        } else {
+          // Phát từ điểm bắt đầu đã định nghĩa
+          window.GradMusic.play(true);
+        }
+        setTimeout(() => {
+          updateTestPlayBtnText();
+          renderMusicPresetTracks();
+        }, 120);
+      });
+    }
+
+    // Cập nhật nhãn thời gian thực khi nghe thử
+    if (window.GradMusic && playerCurrentTimeBadge) {
+      window.GradMusic.onTimeUpdate((cur, dur) => {
+        const curFmt = window.GradMusic.formatTime(cur);
+        const durFmt = dur > 0 ? window.GradMusic.formatTime(dur) : "--:--";
+        playerCurrentTimeBadge.textContent = `⏱️ ${curFmt} / ${durFmt}`;
+      });
+    }
+
     // Upload & Kéo thả ảnh
     function compressLocalFile(file) {
       return new Promise((resolve) => {
@@ -663,11 +832,19 @@ window.GRAD_PRESETS = ${JSON.stringify(PRESETS, null, 2)};
       const mount = createCardIn("guestMount", false);
       updateCardIn(mount, true);
       window.scrollTo({ top: 0, behavior: "instant" });
-      if (fxState.env) openEnvelopeScreen();
-      else window.GradEffects.fireConfetti(100);
+      if (window.GradMusic) window.GradMusic.init(state);
+      if (fxState.env) {
+        openEnvelopeScreen();
+      } else {
+        window.GradEffects.fireConfetti(100);
+        if (window.GradMusic && state.musicEnabled !== false && state.musicAutoplay !== false) {
+          window.GradMusic.play();
+        }
+      }
     });
 
     document.getElementById("exitQuickPreviewBtn").addEventListener("click", () => {
+      if (window.GradMusic) window.GradMusic.pause();
       document.getElementById("envelopeOverlay").classList.add("hidden");
       guestShell.classList.add("hidden");
       quickBar.classList.add("hidden");

@@ -80,7 +80,7 @@ body {
 .quick-guest-box label { display: block; font-size: 0.79rem; font-weight: 700; color: #1e293b; margin-bottom: 5px; }
 .quick-guest-box code, .form-group code, .photo-tip code { background: #f1f5f9; padding: 1px 5px; border-radius: 4px; font-size: 0.75rem; color: #b45309; }
 
-.editor-tabs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; background: #f3f4f6; padding: 4px; border-radius: 12px; margin-bottom: 12px; }
+.editor-tabs { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; background: #f3f4f6; padding: 4px; border-radius: 12px; margin-bottom: 12px; }
 .tab-btn { border: none; background: transparent; padding: 7px 4px; border-radius: 8px; font-family: inherit; font-size: 0.73rem; font-weight: 600; color: #6b7280; cursor: pointer; }
 .tab-btn.active { background: #fff; color: #111827; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.07); }
 .tab-pane { display: none; }
@@ -358,3 +358,473 @@ textarea.form-control { resize: vertical; min-height: 52px; }
 .is-mobile-sim .chibi-bubble { font-size: 0.62rem; padding: 3px 6px; right: 0; }
 .is-mobile-sim .info-box { padding: 11px 10px; gap: 8px; }
 .is-mobile-sim .info-val { font-size: 0.84rem; }
+
+/* ================= ÂM NHẠC & ĐĨA QUAY ================= */
+.music-floating-btn {
+  position: fixed;
+  top: 18px;
+  right: 18px;
+  z-index: 1200;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  background: var(--bg-card);
+  border: 1.5px solid var(--border-accent);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s;
+  padding: 0;
+}
+.music-floating-btn:hover {
+  transform: scale(1.1);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.25);
+}
+.music-floating-btn:active {
+  transform: scale(0.95);
+}
+
+.music-disc-wrap {
+  position: relative;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.music-disc {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #4b5563 0%, #1f2937 45%, #111827 80%, #374151 100%);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  box-shadow: inset 0 0 0 3px rgba(0, 0, 0, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.disc-core {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--accent);
+  border: 2px solid #fff;
+  box-shadow: 0 0 6px rgba(0, 0, 0, 0.3);
+}
+
+.music-icon-state {
+  position: absolute;
+  font-size: 0.8rem;
+  line-height: 1;
+  pointer-events: none;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.5));
+}
+
+.music-floating-btn.is-playing .music-disc {
+  animation: spinDisc 3.6s linear infinite;
+}
+.music-floating-btn.is-paused .music-disc {
+  animation-play-state: paused;
+  filter: grayscale(0.6) opacity(0.8);
+}
+.music-floating-btn.is-paused .music-icon-state {
+  content: "🔇";
+}
+
+@keyframes spinDisc {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.music-soundwaves {
+  position: absolute;
+  bottom: -6px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 10px;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.music-floating-btn.is-playing .music-soundwaves {
+  opacity: 1;
+}
+
+.music-soundwaves span {
+  width: 2.5px;
+  height: 100%;
+  background: var(--accent);
+  border-radius: 2px;
+  animation: wavePulse 0.9s ease-in-out infinite alternate;
+}
+.music-soundwaves span:nth-child(1) { height: 40%; animation-delay: 0.1s; }
+.music-soundwaves span:nth-child(2) { height: 100%; animation-delay: 0.3s; }
+.music-soundwaves span:nth-child(3) { height: 60%; animation-delay: 0.2s; }
+
+@keyframes wavePulse {
+  0% { transform: scaleY(0.3); }
+  100% { transform: scaleY(1); }
+}
+
+.music-tooltip {
+  position: absolute;
+  right: 56px;
+  top: 50%;
+  transform: translateY(-50%) translateX(10px);
+  background: rgba(17, 24, 39, 0.92);
+  color: #fff;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 0.76rem;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.2s, transform 0.2s;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+.music-floating-btn:hover .music-tooltip {
+  opacity: 1;
+  transform: translateY(-50%) translateX(0);
+}
+
+/* UI Tab Âm Nhạc Trong Builder */
+.track-list-grid {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.track-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 9px 12px;
+  border-radius: 10px;
+  border: 1.5px solid #e5e7eb;
+  background: #fff;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.track-card:hover {
+  border-color: var(--accent);
+  background: #fffbeb;
+}
+.track-card.active {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 12%, #fff);
+}
+.track-info {
+  flex: 1;
+  min-width: 0;
+}
+.track-name {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #1f2937;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.track-desc {
+  font-size: 0.72rem;
+  color: #6b7280;
+  margin-top: 2px;
+}
+.track-play-btn {
+  border: none;
+  background: #f3f4f6;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.15s, transform 0.15s;
+}
+.track-play-btn:hover {
+  background: var(--accent);
+  color: #fff;
+  transform: scale(1.08);
+}
+
+.music-player-preview-box {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 11px 12px;
+  margin-top: 10px;
+}
+.player-time-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+.player-time-badge {
+  font-family: monospace;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #1e293b;
+  background: #e2e8f0;
+  padding: 3px 8px;
+  border-radius: 6px;
+}
+
+
+
+/* ================= ÂM NHẠC & ĐĨA QUAY ================= */
+.music-floating-btn {
+  position: fixed;
+  top: 18px;
+  right: 18px;
+  z-index: 1200;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  background: var(--bg-card);
+  border: 1.5px solid var(--border-accent);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s;
+  padding: 0;
+}
+.music-floating-btn:hover {
+  transform: scale(1.1);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.25);
+}
+.music-floating-btn:active {
+  transform: scale(0.95);
+}
+
+.music-disc-wrap {
+  position: relative;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.music-disc {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #4b5563 0%, #1f2937 45%, #111827 80%, #374151 100%);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  box-shadow: inset 0 0 0 3px rgba(0, 0, 0, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.disc-core {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--accent);
+  border: 2px solid #fff;
+  box-shadow: 0 0 6px rgba(0, 0, 0, 0.3);
+}
+
+.music-icon-state {
+  position: absolute;
+  font-size: 0.8rem;
+  line-height: 1;
+  pointer-events: none;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.5));
+}
+
+.music-floating-btn.is-playing .music-disc {
+  animation: spinDisc 3.6s linear infinite;
+}
+.music-floating-btn.is-paused .music-disc {
+  animation-play-state: paused;
+  filter: grayscale(0.6) opacity(0.8);
+}
+.music-floating-btn.is-paused .music-icon-state {
+  content: "🔇";
+}
+
+@keyframes spinDisc {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.music-soundwaves {
+  position: absolute;
+  bottom: -6px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 10px;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.music-floating-btn.is-playing .music-soundwaves {
+  opacity: 1;
+}
+
+.music-soundwaves span {
+  width: 2.5px;
+  height: 100%;
+  background: var(--accent);
+  border-radius: 2px;
+  animation: wavePulse 0.9s ease-in-out infinite alternate;
+}
+.music-soundwaves span:nth-child(1) { height: 40%; animation-delay: 0.1s; }
+.music-soundwaves span:nth-child(2) { height: 100%; animation-delay: 0.3s; }
+.music-soundwaves span:nth-child(3) { height: 60%; animation-delay: 0.2s; }
+
+@keyframes wavePulse {
+  0% { transform: scaleY(0.3); }
+  100% { transform: scaleY(1); }
+}
+
+.music-tooltip {
+  position: absolute;
+  right: 56px;
+  top: 50%;
+  transform: translateY(-50%) translateX(10px);
+  background: rgba(17, 24, 39, 0.92);
+  color: #fff;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 0.76rem;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.2s, transform 0.2s;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+.music-floating-btn:hover .music-tooltip {
+  opacity: 1;
+  transform: translateY(-50%) translateX(0);
+}
+
+/* UI Tab Âm Nhạc Trong Builder */
+.track-list-grid {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.track-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 9px 12px;
+  border-radius: 10px;
+  border: 1.5px solid #e5e7eb;
+  background: #fff;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.track-card:hover {
+  border-color: var(--accent);
+  background: #fffbeb;
+}
+.track-card.active {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 12%, #fff);
+}
+.track-info {
+  flex: 1;
+  min-width: 0;
+}
+.track-name {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #1f2937;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.track-desc {
+  font-size: 0.72rem;
+  color: #6b7280;
+  margin-top: 2px;
+}
+.track-play-btn {
+  border: none;
+  background: #f3f4f6;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.15s, transform 0.15s;
+}
+.track-play-btn:hover {
+  background: var(--accent);
+  color: #fff;
+  transform: scale(1.08);
+}
+
+.music-player-preview-box {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 11px 12px;
+  margin-top: 10px;
+}
+.player-time-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+.player-time-badge {
+  font-family: monospace;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #1e293b;
+  background: #e2e8f0;
+  padding: 3px 8px;
+  border-radius: 6px;
+}
+
+
+.music-player-preview-box {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 11px 12px;
+  margin-top: 10px;
+}
+.player-time-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+.player-time-badge {
+  font-family: monospace;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #1e293b;
+  background: #e2e8f0;
+  padding: 3px 8px;
+  border-radius: 6px;
+}
