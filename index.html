@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Thiệp Mời Lễ Tốt Nghiệp</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700&family=Cormorant+Garamond:ital,wght@0,600;0,700;1,600&family=Dancing+Script:wght@600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body data-theme="ivory">
+
+  <canvas id="particlesCanvas"></canvas>
+  <canvas id="confettiCanvas"></canvas>
+  <div id="chibiGlobalMount"></div>
+
+  <!-- THANH QUAY LẠI KHI XEM THỬ -->
+  <div id="quickPreviewBar" class="quick-preview-bar hidden">
+    <span>📱 Đang xem thử thiệp khách mời</span>
+    <button type="button" class="btn-mini" id="exitQuickPreviewBtn">← Quay lại sửa</button>
+  </div>
+
+  <!-- MÀN HÌNH PHONG BÌ -->
+  <div id="envelopeOverlay" class="envelope-overlay hidden">
+    <div class="envelope-box">
+      <div class="envelope-flap"></div>
+      <div class="wax-seal">🎓</div>
+      <div class="env-label" id="envLabelView"></div>
+      <div class="env-guest" id="envGuestName"></div>
+      <p class="env-hint" id="envHintView"></p>
+      <button class="btn btn-accent" id="openEnvelopeBtn" style="width: 100%; padding: 14px;"></button>
+    </div>
+  </div>
+
+  <!-- CHẾ ĐỘ TOOL CHỈNH SỬA -->
+  <div id="builderShell" class="builder-shell hidden">
+    <aside class="builder-panel">
+      <div class="builder-head">
+        <div>
+          <h1 class="builder-title">🎓 Thiết Kế Thiệp</h1>
+          <p class="save-status" id="saveStatus">● Đã đồng bộ bản nháp</p>
+        </div>
+        <div class="head-actions">
+          <button type="button" class="btn-mini btn-save-now" id="saveNowBtn">💾 Lưu nháp</button>
+          <button type="button" class="btn-mini" id="resetDraftBtn">↺ Mặc định</button>
+        </div>
+      </div>
+
+      <div class="quick-guest-box">
+        <label for="inputGuest">👤 Tên người nhận (thay vào <code>{ten}</code>)</label>
+        <input type="text" id="inputGuest" class="form-control" placeholder="VD: Minh Anh, Thầy Hùng..." />
+      </div>
+
+      <div class="editor-tabs" role="tablist">
+        <button type="button" class="tab-btn active" data-tab="tab-design">🎨 Màu & Chibi</button>
+        <button type="button" class="tab-btn" data-tab="tab-content">✉️ Chữ thiệp</button>
+        <button type="button" class="tab-btn" data-tab="tab-photos">🖼️ Hình ảnh</button>
+        <button type="button" class="tab-btn" data-tab="tab-location">📍 Gửi xe</button>
+      </div>
+
+      <!-- TAB 1: MÀU & CHIBI -->
+      <div class="tab-pane active" id="tab-design">
+        <div class="form-group">
+          <label>Bảng màu thiệp</label>
+          <div class="theme-grid">
+            <button type="button" class="theme-chip active" data-theme="ivory">
+              <span class="swatch" style="background: linear-gradient(135deg, #faf6ee, #b8863b);"></span>
+              Kem Champagne
+            </button>
+            <button type="button" class="theme-chip" data-theme="sage">
+              <span class="swatch" style="background: linear-gradient(135deg, #eef4f0, #2f6b4f);"></span>
+              Xanh Bạc Hà
+            </button>
+            <button type="button" class="theme-chip" data-theme="blush">
+              <span class="swatch" style="background: linear-gradient(135deg, #fdf4f5, #b54d67);"></span>
+              Hồng Phấn
+            </button>
+            <button type="button" class="theme-chip" data-theme="royal">
+              <span class="swatch" style="background: linear-gradient(135deg, #eff4fc, #1e4eb8);"></span>
+              Xanh Học Thuật
+            </button>
+            <button type="button" class="theme-chip" data-theme="midnight">
+              <span class="swatch" style="background: linear-gradient(135deg, #0f1a3a, #d4af37);"></span>
+              Đêm Ánh Kim
+            </button>
+          </div>
+        </div>
+
+        <div class="color-custom-row">
+          <label class="color-picker-box">
+            <span>Màu nhấn</span>
+            <input type="color" id="pickAccent" value="#b8863b" />
+          </label>
+          <label class="color-picker-box">
+            <span>Màu nền</span>
+            <input type="color" id="pickBg" value="#f5efe4" />
+          </label>
+          <button type="button" class="btn-mini" id="clearCustomColorBtn">Reset màu</button>
+        </div>
+
+        <div class="sub-divider">🐥 Chibi áo xanh dương, ruy băng trắng</div>
+        <label class="fx-item" style="margin-bottom: 8px;">
+          <input type="checkbox" id="chibiEnabled" checked /> Hiện bé Chibi cầm chứng nhận tốt nghiệp
+        </label>
+        <div class="form-group">
+          <label>Kiểu di chuyển của Chibi</label>
+          <select class="form-control" id="chibiMode">
+            <option value="guide-info">👉 Đi dọc & chỉ vào Ngày giờ – Địa điểm (Khuyên dùng)</option>
+            <option value="vertical-card">↕️ Đi dọc theo mép phải bức thiệp</option>
+            <option value="horizontal-bottom">➡️ Đi dạo ngang dưới chân màn hình</option>
+          </select>
+        </div>
+        <div class="two-col">
+          <div class="form-group"><label>Câu khi chỉ Thời gian</label><input type="text" class="form-control" data-field="chibiTimeMsg" /></div>
+          <div class="form-group"><label>Câu khi chỉ Địa điểm</label><input type="text" class="form-control" data-field="chibiPlaceMsg" /></div>
+        </div>
+
+        <div class="sub-divider">✨ Hiệu ứng & Nút hiển thị</div>
+        <div class="fx-grid">
+          <label class="fx-item"><input type="checkbox" id="fxEnv" checked /> Mở phong bì</label>
+          <label class="fx-item"><input type="checkbox" id="fxConfetti" checked /> Pháo giấy</label>
+          <label class="fx-item"><input type="checkbox" id="fxParticles" checked /> Hạt lấp lánh</label>
+          <label class="fx-item"><input type="checkbox" id="fxTilt" checked /> Nghiêng 3D</label>
+          <label class="fx-item"><input type="checkbox" id="showCallBtn" checked /> Nút Gọi điện</label>
+          <label class="fx-item"><input type="checkbox" id="showCelebrateBtn" checked /> Nút Bắn pháo</label>
+        </div>
+      </div>
+
+      <!-- TAB 2: NỘI DUNG & FORMAT CHỮ -->
+      <div class="tab-pane" id="tab-content">
+        <div class="form-group">
+          <label>Format chữ câu mời chính</label>
+          <div class="three-col" id="headlineFormats">
+            <button type="button" class="style-pill active" data-hl="classic">✨ Sang trọng</button>
+            <button type="button" class="style-pill" data-hl="script">✒️ Viết tay</button>
+            <button type="button" class="style-pill" data-hl="stacked">🎴 Tách tầng</button>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Gợi ý văn phong</label>
+          <div class="style-pills">
+            <button type="button" class="style-pill" data-style="friendly">😊 Thân thiện</button>
+            <button type="button" class="style-pill" data-style="formal">🎩 Trang trọng</button>
+            <button type="button" class="style-pill" data-style="warm">💛 Tình cảm</button>
+            <button type="button" class="style-pill" data-style="genz">🔥 Gen Z</button>
+          </div>
+        </div>
+
+        <div class="form-group"><label>Nhãn trên cùng</label><input type="text" class="form-control" data-field="badgeText" /></div>
+        <div class="form-group"><label>Câu mời chính (dùng <code>{ten}</code> cho tên khách)</label><input type="text" class="form-control" data-field="headlineTpl" /></div>
+        <div class="form-group"><label>Tên của bạn</label><input type="text" class="form-control" data-field="hostName" /></div>
+        <div class="form-group"><label>Dòng giới thiệu dưới tên</label><input type="text" class="form-control" data-field="degree" /></div>
+        <div class="form-group"><label>Đoạn lời nhắn</label><textarea class="form-control" rows="3" data-field="message"></textarea></div>
+
+        <div class="sub-divider">Thời gian & Địa điểm</div>
+        <div class="two-col">
+          <div class="form-group"><label>Nhãn thời gian</label><input type="text" class="form-control" data-field="timeLabel" /></div>
+          <div class="form-group"><label>Nhãn địa điểm</label><input type="text" class="form-control" data-field="placeLabel" /></div>
+        </div>
+        <div class="form-group"><label>Nội dung Thời gian</label><input type="text" class="form-control" data-field="timeValue" /></div>
+        <div class="form-group"><label>Nội dung Địa điểm</label><input type="text" class="form-control" data-field="placeValue" /></div>
+
+        <div class="sub-divider">Nút cuối & Phong bì</div>
+        <div class="two-col">
+          <div class="form-group"><label>Chữ nút Gọi</label><input type="text" class="form-control" data-field="callBtnText" /></div>
+          <div class="form-group"><label>Số điện thoại</label><input type="text" class="form-control" data-field="phone" /></div>
+        </div>
+        <div class="form-group"><label>Chữ nút Bắn pháo</label><input type="text" class="form-control" data-field="celebrateBtnText" /></div>
+        <div class="form-group"><label>Dòng chân thiệp (<code>{ten}</code>)</label><input type="text" class="form-control" data-field="footerTpl" /></div>
+
+        <div class="sub-divider">Chữ trên Phong Bì</div>
+        <div class="two-col">
+          <div class="form-group"><label>Tiêu đề phong bì</label><input type="text" class="form-control" data-field="envLabel" /></div>
+          <div class="form-group"><label>Chữ nút mở</label><input type="text" class="form-control" data-field="envBtnText" /></div>
+        </div>
+        <div class="form-group"><label>Lời mời ngoài phong bì (<code>{ten}</code>)</label><input type="text" class="form-control" data-field="envHeadlineTpl" /></div>
+        <div class="form-group"><label>Ghi chú phong bì</label><input type="text" class="form-control" data-field="envHint" /></div>
+      </div>
+
+      <!-- TAB 3: UI CHÈN & SẮP XẾP HÌNH ẢNH -->
+      <div class="tab-pane" id="tab-photos">
+        <div class="form-group">
+          <label>Kiểu khung hiển thị ảnh</label>
+          <select class="form-control" id="photoLayout">
+            <option value="polaroid">📸 Ảnh Polaroid nghệ thuật</option>
+            <option value="grid">🪟 Lưới gọn hiện đại</option>
+            <option value="strip">🎞️ Dải ảnh lướt ngang (rất gọn trên điện thoại)</option>
+          </select>
+        </div>
+
+        <!-- Khung kéo thả / chọn ảnh trực quan -->
+        <label class="dropzone-box" id="dropzoneBox">
+          <input type="file" id="uploadPhotoInput" accept="image/*" multiple hidden />
+          <div class="dz-icon">🖼️</div>
+          <div class="dz-title">Kéo thả ảnh vào đây hoặc bấm chọn ảnh</div>
+          <div class="dz-sub">Hoặc <button type="button" class="dz-link-btn" id="addPhotoUrlBtn">+ Thêm bằng link / đường dẫn <code>images/...</code></button></div>
+        </label>
+
+        <div id="localPhotoWarning" class="photo-tip hidden">
+          💡 <strong>Mẹo up GitHub:</strong> Ảnh kéo từ máy đang lưu tạm ở local để bạn sắp xếp. Khi push lên web để bạn bè mở link thấy ảnh, hãy chép file ảnh đó vào thư mục <code>images/</code> và điền <code>images/ten-anh.jpg</code> (hoặc dán link ảnh online) vào ô đường dẫn bên dưới!
+        </div>
+
+        <div id="photoListEditor" class="photo-list-editor"></div>
+      </div>
+
+      <!-- TAB 4: ĐỊA CHỈ & 2 CỔNG GỬI XE -->
+      <div class="tab-pane" id="tab-location">
+        <div class="form-group"><label>Tiêu đề phần gửi xe</label><input type="text" class="form-control" data-field="parkingTitle" /></div>
+        <div class="two-col">
+          <div class="form-group"><label>Nhãn địa chỉ</label><input type="text" class="form-control" data-field="addressLabel" /></div>
+          <div class="form-group"><label>Địa chỉ trường</label><input type="text" class="form-control" data-field="addressValue" /></div>
+        </div>
+
+        <div class="gate-editor-box">
+          <div class="gate-editor-title">📍 Cổng gửi xe 1</div>
+          <div class="form-group"><label>Tên cổng 1</label><input type="text" class="form-control" data-field="gate1Title" /></div>
+          <div class="form-group"><label>Hướng dẫn cổng 1</label><textarea class="form-control" rows="2" data-field="gate1Desc"></textarea></div>
+          <div class="form-group"><label>Tên nút bản đồ 1</label><input type="text" class="form-control" data-field="gate1BtnText" /></div>
+          <div class="form-group">
+            <label class="label-with-link"><span>Link Google Maps Cổng 1</span><a href="#" target="_blank" id="testMap1">Mở thử ↗</a></label>
+            <input type="url" class="form-control" data-field="gate1Url" />
+          </div>
+        </div>
+
+        <div class="gate-editor-box">
+          <div class="gate-editor-title">📍 Cổng gửi xe 2</div>
+          <div class="form-group"><label>Tên cổng 2</label><input type="text" class="form-control" data-field="gate2Title" /></div>
+          <div class="form-group"><label>Hướng dẫn cổng 2</label><textarea class="form-control" rows="2" data-field="gate2Desc"></textarea></div>
+          <div class="form-group"><label>Tên nút bản đồ 2</label><input type="text" class="form-control" data-field="gate2BtnText" /></div>
+          <div class="form-group">
+            <label class="label-with-link"><span>Link Google Maps Cổng 2</span><a href="#" target="_blank" id="testMap2">Mở thử ↗</a></label>
+            <input type="url" class="form-control" data-field="gate2Url" />
+          </div>
+        </div>
+      </div>
+
+      <!-- SHARE & LƯU FORMAT ĐỂ PUSH WEB -->
+      <div class="share-box">
+        <div class="share-label">🔗 Link chia sẻ cho người nhận này:</div>
+        <div class="share-url" id="shareUrlPreview"></div>
+        <div class="btn-row">
+          <button type="button" class="btn btn-accent" id="copyLinkBtn">📋 Copy Link</button>
+          <button type="button" class="btn btn-soft" id="quickPreviewBtn">👁️ Xem thử</button>
+          <a href="#" target="_blank" class="btn btn-soft" id="testLinkBtn" title="Mở ở tab mới">↗</a>
+        </div>
+        <div class="save-web-box">
+          <button type="button" class="btn btn-save-file" id="downloadConfigBtn">
+            ⬇️ Lưu Format & Tải file <code>config.js</code> để push web
+          </button>
+          <button type="button" class="btn-export-link" id="openExportBtn">Hoặc xem & copy code thủ công</button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- XEM TRƯỚC TRỰC TIẾP -->
+    <main class="preview-column">
+      <div class="preview-banner">
+        <span>✨ Bấm thẳng lên chữ để sửa • Chọn vị trí chèn ảnh trực tiếp ở từng khu vực bên dưới!</span>
+        <div class="device-toggle">
+          <button type="button" class="btn-mini active" data-vp="desktop">💻 Máy tính</button>
+          <button type="button" class="btn-mini" data-vp="mobile">📱 Điện thoại</button>
+        </div>
+      </div>
+      <div id="previewStageWrap" class="preview-stage-wrap">
+        <div id="previewMount"></div>
+      </div>
+    </main>
+  </div>
+
+  <!-- CHẾ ĐỘ KHÁCH XEM THIỆP -->
+  <div id="guestShell" class="stage-single hidden">
+    <main id="guestMount"></main>
+  </div>
+
+  <!-- TEMPLATE BỨC THIỆP -->
+  <template id="cardTemplate">
+    <div class="card-wrapper">
+      <article class="grad-card" id="gradCard">
+        <div class="corner-ornament c-tl"></div>
+        <div class="corner-ornament c-tr"></div>
+        <div class="corner-ornament c-bl"></div>
+        <div class="corner-ornament c-br"></div>
+
+        <div id="chibiCardMount"></div>
+
+        <!-- PHẦN 1: LỜI MỜI ĐẸP -->
+        <header class="card-header">
+          <div class="cap-icon">
+            <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
+              <path d="M6 12v5c3 3 9 3 12 0v-5"/>
+            </svg>
+          </div>
+          <div class="badge-top editable" data-edit="badgeText"></div>
+          <h2 class="invite-headline hl-classic editable" id="cardHeadline" data-edit-tpl="headlineTpl"></h2>
+          <div class="host-signature editable" data-edit="hostName"></div>
+          <div class="host-degree editable" id="cardDegree" data-edit="degree"></div>
+          <p class="invite-message editable" id="cardMessage" data-edit="message"></p>
+        </header>
+
+        <!-- KHU VỰC ẢNH: ĐẦU THIỆP -->
+        <div class="slot-wrap" data-slot-wrap="top">
+          <div id="photoSlotTop" class="photo-slot"></div>
+          <button type="button" class="slot-add-btn" data-add-slot="top">+ Chèn ảnh vào Đầu thiệp</button>
+        </div>
+
+        <div class="divider">✦</div>
+
+        <!-- NGÀY GIỜ & ĐỊA ĐIỂM + CHIBI CHỈ VÀO ĐÓ -->
+        <section class="info-chibi-stage" id="infoChibiStage">
+          <div class="info-stack">
+            <div class="info-box" id="timeBox">
+              <div class="info-icon">🗓️</div>
+              <div class="info-content">
+                <div class="info-title editable" data-edit="timeLabel"></div>
+                <div class="info-val editable" data-edit="timeValue"></div>
+              </div>
+            </div>
+            <div class="info-box" id="placeBox">
+              <div class="info-icon">🎓</div>
+              <div class="info-content">
+                <div class="info-title editable" data-edit="placeLabel"></div>
+                <div class="info-val editable" data-edit="placeValue"></div>
+              </div>
+            </div>
+          </div>
+          <div class="chibi-info-rail" id="chibiInfoRail"></div>
+        </section>
+
+        <!-- KHU VỰC ẢNH: GIỮA THIỆP -->
+        <div class="slot-wrap" data-slot-wrap="middle">
+          <div id="photoSlotMiddle" class="photo-slot"></div>
+          <button type="button" class="slot-add-btn" data-add-slot="middle">+ Chèn ảnh vào Giữa thiệp</button>
+        </div>
+
+        <!-- PHẦN 2: ĐỊA CHỈ & 2 CỔNG GỬI XE -->
+        <section class="parking-section">
+          <h3 class="section-heading editable" data-edit="parkingTitle"></h3>
+          <div class="address-banner">
+            <strong class="editable" data-edit="addressLabel"></strong>
+            <span class="editable" data-edit="addressValue"></span>
+          </div>
+          <div class="gates-grid">
+            <div class="gate-card">
+              <div class="gate-title editable" data-edit="gate1Title"></div>
+              <p class="gate-desc editable" data-edit="gate1Desc"></p>
+              <a href="#" target="_blank" rel="noopener" class="btn btn-accent gate-btn editable" id="btnGate1" data-edit="gate1BtnText"></a>
+            </div>
+            <div class="gate-card">
+              <div class="gate-title editable" data-edit="gate2Title"></div>
+              <p class="gate-desc editable" data-edit="gate2Desc"></p>
+              <a href="#" target="_blank" rel="noopener" class="btn btn-accent gate-btn editable" id="btnGate2" data-edit="gate2BtnText"></a>
+            </div>
+          </div>
+        </section>
+
+        <!-- KHU VỰC ẢNH: CUỐI THIỆP -->
+        <div class="slot-wrap" data-slot-wrap="bottom">
+          <div id="photoSlotBottom" class="photo-slot"></div>
+          <button type="button" class="slot-add-btn" data-add-slot="bottom">+ Chèn ảnh vào Cuối thiệp</button>
+        </div>
+
+        <div class="card-actions" id="cardActions">
+          <a href="#" class="btn btn-soft editable" id="btnCall" data-edit="callBtnText"></a>
+          <button type="button" class="btn btn-soft editable" id="btnCelebrate" data-edit="celebrateBtnText"></button>
+        </div>
+
+        <p class="guest-footer-note editable" id="guestFooterNote" data-edit-tpl="footerTpl"></p>
+      </article>
+    </div>
+  </template>
+
+  <!-- LIGHTBOX PHÓNG TO ẢNH -->
+  <div id="lightboxOverlay" class="modal-backdrop hidden">
+    <div class="lightbox-box">
+      <button type="button" class="lightbox-close" id="closeLightboxBtn">✕</button>
+      <img id="lightboxImg" src="" alt="Ảnh kỷ niệm" />
+      <p id="lightboxCaption"></p>
+    </div>
+  </div>
+
+  <!-- MODAL COPY CODE -->
+  <div id="exportModal" class="modal-backdrop hidden">
+    <div class="modal-box">
+      <h3>💾 Code cấu hình <code>js/config.js</code></h3>
+      <p>Bạn có thể bấm nút tải file ở bảng điều khiển hoặc copy toàn bộ nội dung này dán đè vào file <code>js/config.js</code>:</p>
+      <textarea id="exportCodeArea" class="form-control" rows="12" readonly></textarea>
+      <div class="btn-row" style="margin-top: 12px;">
+        <button type="button" class="btn btn-accent" id="copyExportBtn">📋 Copy toàn bộ</button>
+        <button type="button" class="btn btn-soft" id="closeExportBtn">Đóng</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast">Đã lưu!</div>
+
+  <script src="js/config.js"></script>
+  <script src="js/effects.js"></script>
+  <script src="js/chibi.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
